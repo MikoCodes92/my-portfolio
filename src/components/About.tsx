@@ -303,32 +303,6 @@ export const About = () => {
               {skills[activeSkill].description}
             </p>
           </motion.div>
-
-          {/* Contact & Portfolio Buttons */}
-          <motion.div
-            className="flex gap-4 mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.6 }}
-          >
-            <a href="mailto:mikiasgsilasie1920@gmail.com">
-              <Button
-                variant="outline"
-                className="hover:scale-105 transition-transform"
-              >
-                Contact Me
-              </Button>
-            </a>
-            <a
-              href="https://github.com/MikoCodes92"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button className="gradient-neon hover:scale-105 transition-transform">
-                View My Work
-              </Button>
-            </a>
-          </motion.div>
         </div>
       </div>
     </section>
