@@ -1,11 +1,7 @@
+// src/components/Hero.tsx
+import React, { useRef } from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import {
-  OrbitControls,
-  Float,
-  MeshDistortMaterial,
-  Sphere,
-  Torus,
-} from "@react-three/drei";
+import { OrbitControls, Float, MeshDistortMaterial } from "@react-three/drei";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -18,55 +14,104 @@ import {
   Terminal,
   User,
 } from "lucide-react";
-import { useRef } from "react";
 import * as THREE from "three";
 import defaultAvatar from "@/assets/miko_image.jpg";
 
-function AnimatedSphere() {
+/**
+ * Lightweight mobile detection helper (used only to decide cheaper rendering).
+ * - Safe for SSR; returns false when window is undefined.
+ */
+function useIsMobile() {
+  if (typeof window === "undefined") return false;
   return (
-    <Float speed={2} rotationIntensity={1} floatIntensity={2}>
+    (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
+    window.innerWidth <= 768
+  );
+}
+
+/**
+ * AnimatedSphere
+ * - picks a lower geometry subdivision on mobile
+ * - reduces distort/speed and emissive intensity on mobile
+ */
+function AnimatedSphere() {
+  const isMobile = useIsMobile();
+
+  const icoDetail = isMobile ? 2 : 4; // lower subdivision on mobile
+  const distort = isMobile ? 0.2 : 0.5;
+  const speed = isMobile ? 1.2 : 3;
+  const floatSpeed = isMobile ? 0.6 : 2;
+  const rotationIntensity = isMobile ? 0.25 : 1;
+  const floatIntensity = isMobile ? 0.5 : 2;
+
+  return (
+    <Float
+      speed={floatSpeed}
+      rotationIntensity={rotationIntensity}
+      floatIntensity={floatIntensity}
+    >
       <mesh>
-        <icosahedronGeometry args={[1, 4]} />
+        <icosahedronGeometry args={[1, icoDetail]} />
         <MeshDistortMaterial
           color="#00ffff"
           attach="material"
-          distort={0.5}
-          speed={3}
+          distort={distort}
+          speed={speed}
           roughness={0}
           metalness={1}
         />
       </mesh>
 
-      {/* Outer ring */}
+      {/* Outer ring - lowered segments on mobile */}
       <mesh rotation={[Math.PI / 2, 0, 0]}>
-        <torusGeometry args={[2, 0.05, 16, 100]} />
+        <torusGeometry args={[2, 0.05, 8, 50]} />
         <meshStandardMaterial
           color="#a855f7"
           emissive="#a855f7"
-          emissiveIntensity={0.5}
+          emissiveIntensity={isMobile ? 0.25 : 0.5}
         />
       </mesh>
 
       {/* Second ring */}
       <mesh rotation={[0, Math.PI / 2, 0]}>
-        <torusGeometry args={[2.2, 0.05, 16, 100]} />
+        <torusGeometry args={[2.2, 0.05, 8, 50]} />
         <meshStandardMaterial
           color="#00ffff"
           emissive="#00ffff"
-          emissiveIntensity={0.5}
+          emissiveIntensity={isMobile ? 0.25 : 0.5}
         />
       </mesh>
     </Float>
   );
 }
 
+/**
+ * FloatingCode
+ * - throttles per-frame updates on mobile to reduce CPU/GPU work
+ */
 function FloatingCode() {
   const meshRef = useRef<THREE.Mesh>(null);
+  const isMobile = useIsMobile();
+  const accumulator = useRef(0);
 
-  useFrame((state) => {
-    if (meshRef.current) {
-      meshRef.current.rotation.x = state.clock.elapsedTime * 0.2;
-      meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+  useFrame((state, delta) => {
+    if (isMobile) {
+      // throttle to ~30 FPS on mobile
+      accumulator.current += delta;
+      const minStep = 1 / 30;
+      if (accumulator.current < minStep) return;
+      const step = accumulator.current;
+      accumulator.current = 0;
+      if (meshRef.current) {
+        meshRef.current.rotation.x += step * 0.2;
+        meshRef.current.rotation.y += step * 0.3;
+      }
+    } else {
+      // smooth updates on desktop
+      if (meshRef.current) {
+        meshRef.current.rotation.x = state.clock.elapsedTime * 0.2;
+        meshRef.current.rotation.y = state.clock.elapsedTime * 0.3;
+      }
     }
   });
 
@@ -83,29 +128,72 @@ function FloatingCode() {
   );
 }
 
-export const Hero = () => {
+export const Hero: React.FC = () => {
+  const isMobile = useIsMobile();
+
+  // Cap DPR to limit fragment shading on high-DPR devices.
+  // On mobile we force 1; on desktop allow up to 1.5 (keeps quality reasonable).
+  const dprMax = isMobile
+    ? 1
+    : Math.min(
+        typeof window !== "undefined" ? window.devicePixelRatio ?? 1 : 1,
+        1.5
+      );
+
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* 3D Background */}
-      <div className="absolute inset-0 opacity-70">
-        <Canvas camera={{ position: [0, 0, 5], fov: 45 }}>
-          <ambientLight intensity={0.3} />
-          <directionalLight position={[10, 10, 5]} intensity={1.5} />
-          <pointLight position={[-10, -10, -5]} intensity={1} color="#00ffff" />
-          <pointLight position={[10, -10, -5]} intensity={1} color="#a855f7" />
-          <spotLight position={[0, 10, 0]} intensity={0.5} color="#ff00ff" />
+      <div className="absolute inset-0 opacity-70 pointer-events-none">
+        <Canvas
+          dpr={[1, dprMax]}
+          gl={{ antialias: false, powerPreference: "low-power", alpha: true }}
+          style={{
+            width: "100%",
+            height: "100%",
+            pointerEvents: isMobile ? "none" : "auto",
+          }}
+        >
+          {/* LIGTHING: reduce lights on mobile */}
+          <ambientLight intensity={isMobile ? 0.25 : 0.3} />
+          {!isMobile && (
+            <directionalLight position={[10, 10, 5]} intensity={1.5} />
+          )}
+          {isMobile ? (
+            <pointLight position={[6, 6, 2]} intensity={0.6} color="#00ffff" />
+          ) : (
+            <>
+              <pointLight
+                position={[-10, -10, -5]}
+                intensity={1}
+                color="#00ffff"
+              />
+              <pointLight
+                position={[10, -10, -5]}
+                intensity={1}
+                color="#a855f7"
+              />
+              <spotLight
+                position={[0, 10, 0]}
+                intensity={0.5}
+                color="#ff00ff"
+              />
+            </>
+          )}
+
           <AnimatedSphere />
           <FloatingCode />
+
+          {/* Controls: disable autoRotate on mobile to reduce continuous re-rendering */}
           <OrbitControls
             enableZoom={false}
             enablePan={false}
-            autoRotate
-            autoRotateSpeed={1}
+            autoRotate={!isMobile}
+            autoRotateSpeed={isMobile ? 0.2 : 1}
           />
         </Canvas>
       </div>
 
-      {/* Tech elements */}
+      {/* Tech elements (kept unchanged) */}
       <div className="absolute top-20 left-10 animate-float">
         <Code2 className="w-12 h-12 text-accent opacity-20" />
       </div>
@@ -116,7 +204,7 @@ export const Hero = () => {
         <Terminal className="w-16 h-16 text-primary opacity-20" />
       </div>
 
-      {/* Content */}
+      {/* Content (kept exactly like your original content) */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
