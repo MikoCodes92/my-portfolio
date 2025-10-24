@@ -210,89 +210,67 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
                 </motion.div>
               </CardHeader>
 
-              <CardContent className="mt-6 sm:mt-8 text-center relative z-10">
+              <CardContent className="mt-6 sm:mt-8 text-center relative z-10 flex flex-col items-center justify-center gap-6">
                 {/* Tech Stack */}
                 <motion.div
                   initial={{ scale: 0.9, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: 0.2, duration: 0.5 }}
+                  className="flex flex-wrap justify-center gap-2 sm:gap-3"
                 >
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-3 sm:mb-4 drop-shadow-lg relative">
-                    Tech Stack
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent blur-sm opacity-50" />
-                  </h3>
-                  <div className="flex flex-wrap justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                    {project.tech.map((t, i) => (
-                      <motion.span
-                        key={t}
-                        initial={{ scale: 0, rotate: -180 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ delay: 0.3 + i * 0.1, type: "spring" }}
-                        whileHover={{
-                          scale: 1.1,
-                          y: -2,
-                          transition: { type: "spring", stiffness: 400 },
-                        }}
-                        className="text-sm sm:text-lg px-4 sm:px-5 py-2 sm:py-2.5 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-100 shadow-lg backdrop-blur-sm font-medium hover:shadow-cyan-500/30 hover:border-cyan-300 transition-all duration-300 relative overflow-hidden group/tech"
-                      >
-                        {/* Tech Item Glow */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-400/0 opacity-0 group-hover/tech:opacity-100 transition-opacity duration-500" />
-                        <span className="relative z-10">{t}</span>
-                      </motion.span>
-                    ))}
-                  </div>
+                  {project.tech.map((t, i) => (
+                    <motion.span
+                      key={t}
+                      initial={{ scale: 0, rotate: -180 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ delay: 0.3 + i * 0.1, type: "spring" }}
+                      whileHover={{
+                        scale: 1.1,
+                        y: -2,
+                        transition: { type: "spring", stiffness: 400 },
+                      }}
+                      className="text-sm sm:text-lg px-3 py-1 rounded-2xl bg-cyan-500/20 border border-cyan-400/40 text-cyan-100 shadow-lg backdrop-blur-sm font-medium hover:shadow-cyan-500/30 hover:border-cyan-300 transition-all duration-300 relative overflow-hidden group/tech"
+                    >
+                      <span className="relative z-10">{t}</span>
+                    </motion.span>
+                  ))}
                 </motion.div>
 
-                {/* Action Buttons */}
-                <motion.div
-                  initial={{ y: 20, opacity: 0 }}
-                  animate={{ y: 0, opacity: 1 }}
-                  transition={{ delay: 0.4, duration: 0.5 }}
-                >
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-semibold bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent mb-3 sm:mb-4 drop-shadow-lg relative">
-                    Explore Project
-                    <div className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent blur-sm opacity-50" />
-                  </h3>
-                  <div className="flex flex-wrap justify-center gap-4 sm:gap-6">
-                    <Button
-                      variant="outline"
-                      size="lg"
-                      asChild
-                      className="group relative overflow-hidden bg-transparent border-2 border-cyan-400/60 hover:border-cyan-300 text-cyan-100 hover:text-cyan-50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold text-base sm:text-lg md:text-xl px-8 py-6 rounded-2xl hover:shadow-cyan-500/25"
+                {/* Buttons */}
+                <div className="flex flex-col sm:flex-row justify-center items-center gap-4 w-full sm:w-auto">
+                  <Button
+                    variant="outline"
+                    size="lg"
+                    asChild
+                    className="group relative overflow-hidden bg-cyan-700/70 border border-cyan-400/20 text-cyan-100/90 hover:bg-cyan-400/30 hover:border-cyan-300 hover:text-cyan-50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
+                  >
+                    <a
+                      href={project.github}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 justify-center"
                     >
-                      <a
-                        href={project.github}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3"
-                      >
-                        {/* Button Glow Effects */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/15 to-cyan-500/0 group-hover:via-cyan-500/25 transition-all duration-500" />
-                        <div className="absolute inset-0 bg-cyan-500/10 blur-md opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                        <Github className="w-5 sm:w-6 relative z-10" />
-                        <span className="relative z-10">View Code</span>
-                      </a>
-                    </Button>
-                    <Button
-                      size="lg"
-                      className="group relative overflow-hidden bg-gradient-to-r from-cyan-600 to-cyan-500 hover:from-cyan-500 hover:to-cyan-400 text-white shadow-2xl hover:shadow-cyan-500/40 transition-all duration-300 hover:scale-105 font-semibold text-base sm:text-lg md:text-xl px-8 py-6 rounded-2xl"
-                      asChild
+                      <Github className="w-5 sm:w-6 relative z-10" />
+                      <span className="relative z-10">View Code</span>
+                    </a>
+                  </Button>
+
+                  <Button
+                    size="lg"
+                    asChild
+                    className="group relative overflow-hidden bg-cyan-700/70 border border-cyan-400/20 text-cyan-100/90 hover:bg-cyan-400/30 hover:border-cyan-300 hover:text-cyan-50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
+                  >
+                    <a
+                      href={project.demo}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 justify-center"
                     >
-                      <a
-                        href={project.demo}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-3"
-                      >
-                        {/* Demo Button Glow */}
-                        <div className="absolute inset-0 bg-gradient-to-r from-white/0 via-white/25 to-white/0 opacity-0 group-hover:opacity-100 transition-all duration-500" />
-                        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600 to-cyan-500 rounded-2xl blur opacity-30 group-hover:opacity-70 transition-opacity duration-300" />
-                        <ExternalLink className="w-5 sm:w-6 relative z-10" />
-                        <span className="relative z-10">Live Demo</span>
-                      </a>
-                    </Button>
-                  </div>
-                </motion.div>
+                      <ExternalLink className="w-5 sm:w-6 relative z-10" />
+                      <span className="relative z-10">Live Demo</span>
+                    </a>
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </Html>
