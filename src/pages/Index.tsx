@@ -1,12 +1,10 @@
 import { Navigation } from "@/components/Navigation";
 import { Hero } from "@/components/Hero";
 import { About } from "@/components/About";
-import { TechStack } from "@/components/TechStack";
-import { Projects } from "@/components/Projects";
 import { Contact } from "@/components/Contact";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { TechGrid } from "@/components/TechGrid";
-import { useEffect, Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
 const LazyTechStack = lazy(() => import("@/components/TechStack"));
@@ -29,26 +27,25 @@ const Index = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
+
+    // Ensure scroll happens after layout and minor delays
     requestAnimationFrame(scrollToHash);
     [1, 2].forEach((i) => setTimeout(scrollToHash, i * 100));
   }, [location]);
 
   return (
-    <div
-      className="relative scroll-smooth"
-      style={{ scrollBehavior: "smooth" }}
-    >
+    <div className="relative scroll-smooth">
       <TechGrid />
       <ParticleBackground />
       <Navigation />
       <main className="relative z-10">
-        <div id="home">
+        <section id="home">
           <Hero />
-        </div>
-        <div id="about">
+        </section>
+        <section id="about">
           <About />
-        </div>
-        <div id="tech-stack">
+        </section>
+        <section id="tech-stack">
           <Suspense
             fallback={
               <div className="text-center py-20">Loading Tech Stack...</div>
@@ -56,8 +53,8 @@ const Index = () => {
           >
             <LazyTechStack />
           </Suspense>
-        </div>
-        <div id="projects">
+        </section>
+        <section id="projects">
           <Suspense
             fallback={
               <div className="text-center py-20">Loading Projects...</div>
@@ -65,10 +62,10 @@ const Index = () => {
           >
             <LazyProjects />
           </Suspense>
-        </div>
-        <div id="contact">
+        </section>
+        <section id="contact">
           <Contact />
-        </div>
+        </section>
       </main>
       <footer className="relative z-10 py-8 px-6 border-t border-border/50">
         <div className="max-w-7xl mx-auto text-center text-muted-foreground">
