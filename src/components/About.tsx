@@ -114,8 +114,8 @@ function useIsMobile() {
 
 function getLissajousPosition(t: number, idx: number, total: number) {
   const a = 5,
-    b = 3.5;
-  const delta = (idx / total) * Math.PI * 2;
+    b = 3.5,
+    delta = (idx / total) * Math.PI * 2;
   return new THREE.Vector3(
     a * Math.sin(0.1 * t + delta),
     b * Math.sin(0.08 * t + delta * 2),
@@ -135,10 +135,9 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
   useFrame((state, delta) => {
     if (isMobile) {
       acc.current += delta;
-      if (acc.current < 1 / 30) return; // throttle FPS
+      if (acc.current < 1 / 30) return;
       acc.current = 0;
     }
-
     const t = state.clock.elapsedTime;
 
     for (let idx = 0; idx < skills.length; idx++) {
@@ -176,7 +175,6 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
           wireframe
         />
       </mesh>
-
       {skills.map((skill, idx) => {
         const Icon = skill.icon;
         return (
@@ -231,22 +229,32 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
   );
 }
 
-function TypewriterText({ text }: { text: string }) {
+function TypewriterText({
+  text,
+  speed = 75,
+}: {
+  text: string;
+  speed?: number;
+}) {
   const [displayed, setDisplayed] = useState("");
+  const indexRef = useRef(0);
+
   useEffect(() => {
-    setDisplayed("");
-    let idx = 0;
+    setDisplayed(""); // reset
+    indexRef.current = 0;
+
     const interval = setInterval(() => {
-      if (!text || idx >= text.length) {
+      if (indexRef.current < text.length) {
+        setDisplayed(text.slice(0, indexRef.current + 1)); // slice ensures no skipped characters
+        indexRef.current += 1;
+      } else {
         clearInterval(interval);
-        return;
       }
-      setDisplayed((prev) => prev + text[idx]);
-      idx++;
-      if (idx === text.length) clearInterval(interval);
-    }, 48);
+    }, speed);
+
     return () => clearInterval(interval);
-  }, [text]);
+  }, [text, speed]);
+
   return <span>{displayed}</span>;
 }
 
@@ -265,103 +273,43 @@ export const About: React.FC = () => {
   const dprMax = isMobile ? 1 : Math.min(window?.devicePixelRatio ?? 1, 1.5);
 
   return (
-    <section id="about" className="relative py-16 px-6">
-      <div
-        style={{
-          position: "absolute",
-          inset: 0,
-          background: "transparent",
-          pointerEvents: "none",
-          zIndex: 0,
-        }}
-      />
-      <div
-        style={{ position: "relative", zIndex: 2 }}
-        className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12"
-      >
-        <div
-          className="w-full lg:w-1/2 h-[44rem] rounded-2xl overflow-hidden shadow-2xl"
-          style={{
-            background: "transparent",
-            border: "1px solid rgba(255,255,255,0.03)",
-          }}
-        >
-          <Canvas
-            camera={{ position: [0, 0, 16], fov: 50 }}
-            dpr={[1, dprMax]}
-            gl={{ antialias: false, powerPreference: "low-power", alpha: true }}
-            style={{
-              width: "100%",
-              height: "100%",
-              background: "transparent",
-              display: "block",
-            }}
-          >
-            <ambientLight intensity={isMobile ? 0.45 : 0.65} />
-            {!isMobile && (
-              <directionalLight position={[6, 6, 6]} intensity={0.9} />
-            )}
-            {isMobile && (
-              <pointLight
-                position={[4, 4, 4]}
-                intensity={0.6}
-                color="#06b6d4"
-              />
-            )}
-            <AlgorithmicSphere activeIndex={activeSkill} />
-            <OrbitControls
-              enableZoom={false}
-              enablePan={false}
-              autoRotate={!isMobile}
-              autoRotateSpeed={isMobile ? 0.01 : 0.02}
-            />
-          </Canvas>
-        </div>
-
-        <div
-          className="w-full lg:w-1/2 flex flex-col gap-6 text-white"
-          style={{ zIndex: 3 }}
-        >
+    <section
+      id="about"
+      className="relative flex flex-col items-center justify-center py-16 px-6 min-h-screen text-center"
+    >
+      {/* Centered Content Wrapper */}
+      <div className="max-w-5xl w-full flex flex-col lg:flex-row items-center gap-16">
+        {/* Text Section */}
+        <div className="w-full lg:w-1/2 flex flex-col gap-6 text-white">
           <motion.h2
             className="text-4xl md:text-5xl font-bold"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <span
-              style={{
-                background: "linear-gradient(90deg,#00f0ff,#8d3cff)",
-                WebkitBackgroundClip: "text",
-                color: "transparent",
-              }}
-            >
+            <span className="bg-gradient-to-r from-[#00f0ff] to-[#8d3cff] bg-clip-text text-transparent">
               About Me
             </span>
           </motion.h2>
 
           <motion.p
             className="text-lg leading-relaxed text-white/90"
+            style={{ textAlign: "justify" }}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.15 }}
           >
-            I am a <b>Full-Stack Developer</b> with deep technical expertise and
-            strong professional soft skills. My work spans{" "}
-            <b>
-              algorithm optimization, system design, backend development, cloud
-              solutions, and CI/CD
-            </b>
-            , paired with{" "}
-            <b>
-              dedication, problem-solving, teamwork, adaptability, and
-              communication
-            </b>
-            .
+            I am a <b>Senior Full-Stack Developer</b> building secure, scalable,
+            and high-performance solutions. I craft robust APIs, efficient
+            systems, and responsive interfaces with precision. Each project
+            reflects my commitment to{" "}
+            <b>security, performance, and client satisfaction</b>, delivering
+            impactful digital products.
           </motion.p>
 
           <motion.div
             key={skills[activeSkill].name}
-            className="bg-gradient-to-r from-white/3 to-white/2 p-6 rounded-xl shadow-2xl relative overflow-hidden mt-6"
+            className="bg-gradient-to-r from-white/5 to-white/2 p-6 rounded-2xl shadow-2xl mt-6 mx-auto max-w-md"
             initial={{ opacity: 0, x: 60 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 1.2 }}
@@ -393,19 +341,46 @@ export const About: React.FC = () => {
                   setActiveSkill((s) => (s - 1 + skills.length) % skills.length)
                 }
                 className="px-3 py-2 rounded-lg text-sm bg-white/5 border border-white/8 hover:bg-white/6 transition"
-                aria-label="Previous skill"
               >
                 Prev
               </button>
               <button
                 onClick={() => setActiveSkill((s) => (s + 1) % skills.length)}
                 className="px-3 py-2 rounded-lg text-sm bg-gradient-to-r from-[#00f0ff] to-[#8d3cff] text-black font-semibold hover:opacity-90 transition"
-                aria-label="Next skill"
               >
                 Next
               </button>
             </div>
           </motion.div>
+        </div>
+
+        {/* 3D Sphere Section */}
+        <div className="w-full lg:w-1/2 h-[44rem] rounded-2xl overflow-hidden shadow-2xl">
+          <Canvas
+            camera={{ position: [0, 0, 16], fov: 50 }}
+            dpr={[1, dprMax]}
+            gl={{ antialias: false, powerPreference: "low-power", alpha: true }}
+            style={{ width: "100%", height: "100%", background: "transparent" }}
+          >
+            <ambientLight intensity={isMobile ? 0.45 : 0.65} />
+            {!isMobile && (
+              <directionalLight position={[6, 6, 6]} intensity={0.9} />
+            )}
+            {isMobile && (
+              <pointLight
+                position={[4, 4, 4]}
+                intensity={0.6}
+                color="#06b6d4"
+              />
+            )}
+            <AlgorithmicSphere activeIndex={activeSkill} />
+            <OrbitControls
+              enableZoom={false}
+              enablePan={false}
+              autoRotate={!isMobile}
+              autoRotateSpeed={isMobile ? 0.01 : 0.02}
+            />
+          </Canvas>
         </div>
       </div>
     </section>
