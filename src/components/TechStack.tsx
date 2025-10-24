@@ -7,10 +7,28 @@ import React, {
   useCallback,
 } from "react";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
-import { OrbitControls, Html, Float, Sparkles } from "@react-three/drei";
+import { OrbitControls, Html, Float, Sparkles, Stars } from "@react-three/drei";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import * as THREE from "three";
+
+// Ant Design Icons
+import {
+  CodeOutlined,
+  RocketOutlined,
+  DatabaseOutlined,
+  RobotOutlined,
+  SettingOutlined,
+  ToolOutlined,
+  TeamOutlined,
+  ThunderboltOutlined,
+  CloudServerOutlined,
+  ApiOutlined,
+  ExperimentOutlined,
+  BulbOutlined,
+  SafetyCertificateOutlined,
+  DeploymentUnitOutlined,
+} from "@ant-design/icons";
 
 /* ===========================
    OPTIMIZED MOBILE DETECTION
@@ -48,7 +66,7 @@ const useIsMobile = () => {
    ======================================================================== */
 interface TechCategory {
   title: string;
-  icon: string;
+  icon: React.ReactNode;
   skills: string[];
   color: string;
   description: string;
@@ -68,12 +86,12 @@ interface HoneycombCellProps {
 }
 
 /* ========================================================================
-   DATA
+   DATA WITH ANT DESIGN ICONS AND COLOR COORDINATION
    ======================================================================== */
 const techCategories: TechCategory[] = [
   {
     title: "Programming Languages",
-    icon: "💻",
+    icon: <CodeOutlined style={{ color: "#06b6d4" }} />,
     skills: [
       "Python",
       "Java",
@@ -87,13 +105,13 @@ const techCategories: TechCategory[] = [
     ],
     color: "#06b6d4",
     description: "Core programming foundations and syntax mastery",
-    model: "cube",
+    model: "tetrahedron",
     proficiency: 98,
     frequency: 0.8,
   },
   {
     title: "Frameworks & Libraries",
-    icon: "🚀",
+    icon: <RocketOutlined style={{ color: "#8b5cf6" }} />,
     skills: [
       "Django",
       "Flask",
@@ -107,13 +125,13 @@ const techCategories: TechCategory[] = [
     ],
     color: "#8b5cf6",
     description: "Modern development ecosystems and tools",
-    model: "sphere",
+    model: "icosahedron",
     proficiency: 96,
     frequency: 0.6,
   },
   {
     title: "Databases & ORM",
-    icon: "🗄️",
+    icon: <DatabaseOutlined style={{ color: "#10b981" }} />,
     skills: [
       "PostgreSQL",
       "MySQL",
@@ -124,23 +142,23 @@ const techCategories: TechCategory[] = [
     ],
     color: "#10b981",
     description: "Data persistence and management solutions",
-    model: "cylinder",
+    model: "torusKnot",
     proficiency: 97,
     frequency: 0.7,
   },
   {
     title: "Machine Learning & AI",
-    icon: "🤖",
+    icon: <RobotOutlined style={{ color: "#f97316" }} />,
     skills: ["CNN", "RNN", "LSTM", "NLP", "LangChain", "Deep Learning"],
     color: "#f97316",
     description: "Intelligent systems and artificial intelligence",
-    model: "pyramid",
+    model: "octahedron",
     proficiency: 95,
     frequency: 0.5,
   },
   {
     title: "DevOps & Deployment",
-    icon: "⚙️",
+    icon: <DeploymentUnitOutlined style={{ color: "#6b7280" }} />,
     skills: [
       "Docker",
       "IIS",
@@ -158,7 +176,7 @@ const techCategories: TechCategory[] = [
   },
   {
     title: "Tools & Design",
-    icon: "🎨",
+    icon: <ToolOutlined style={{ color: "#eab308" }} />,
     skills: [
       "Git",
       "VS Code",
@@ -170,13 +188,13 @@ const techCategories: TechCategory[] = [
     ],
     color: "#eab308",
     description: "Development tools and design systems",
-    model: "octahedron",
+    model: "dodecahedron",
     proficiency: 97,
     frequency: 0.9,
   },
   {
     title: "Collaboration",
-    icon: "👥",
+    icon: <TeamOutlined style={{ color: "#6366f1" }} />,
     skills: [
       "GitHub",
       "GitLab",
@@ -188,16 +206,16 @@ const techCategories: TechCategory[] = [
     ],
     color: "#6366f1",
     description: "Team collaboration and project management",
-    model: "dodecahedron",
+    model: "sphere",
     proficiency: 96,
     frequency: 0.8,
   },
 ];
 
 /* ========================================================================
-   LAYOUT HELPERS
+   LAYOUT HELPERS - SEPARATE FOR MOBILE AND DESKTOP
    ======================================================================== */
-const generateHoneycombPositions = (): [number, number, number][] => {
+const generateDesktopHoneycombPositions = (): [number, number, number][] => {
   const positions: [number, number, number][] = [];
   const radius = 1.8;
   const angleStep = (2 * Math.PI) / 6;
@@ -212,46 +230,90 @@ const generateHoneycombPositions = (): [number, number, number][] => {
   return positions;
 };
 
-const HONEYCOMB_POSITIONS = generateHoneycombPositions();
+const generateMobileHoneycombPositions = (): [number, number, number][] => {
+  const positions: [number, number, number][] = [];
+  const radius = 2.2;
+  const angleStep = (2 * Math.PI) / 6;
 
-/* ========================================================================
-   SIMPLIFIED MOBILE ANIMATIONS
-   ======================================================================== */
+  positions.push([0, 0, 0]);
+  for (let i = 0; i < 6; i++) {
+    const angle = i * angleStep;
+    const x = radius * Math.cos(angle);
+    const y = radius * Math.sin(angle);
+    positions.push([x, y, 0]);
+  }
+  return positions;
+};
+
+const DESKTOP_POSITIONS = generateDesktopHoneycombPositions();
+const MOBILE_POSITIONS = generateMobileHoneycombPositions();
+
+/* ============================
+   MOBILE PARTICLE FIELD
+   ============================ */
 const MobileParticleField = React.memo(
-  ({ count = 30, speed = 1 }: { count?: number; speed?: number }) => {
+  ({ count = 20, speed = 1 }: { count?: number; speed?: number }) => {
     const pointsRef = useRef<THREE.Points>(null);
+    const particleData = useRef<
+      Array<{
+        position: [number, number, number];
+        velocity: [number, number, number];
+      }>
+    >([]);
 
-    const positions = useMemo(() => {
-      const a = new Float32Array(count * 3);
-      for (let i = 0; i < count * 3; i += 3) {
-        a[i] = (Math.random() - 0.5) * 10;
-        a[i + 1] = (Math.random() - 0.5) * 10;
-        a[i + 2] = (Math.random() - 0.5) * 5;
-      }
-      return a;
+    const particles = useMemo(() => {
+      const data = Array.from({ length: count }).map(() => ({
+        position: [
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 8,
+          (Math.random() - 0.5) * 4,
+        ] as [number, number, number],
+        velocity: [
+          (Math.random() - 0.5) * 0.006,
+          (Math.random() - 0.5) * 0.006,
+          (Math.random() - 0.5) * 0.003,
+        ] as [number, number, number],
+      }));
+      particleData.current = data;
+      return data;
     }, [count]);
 
     useFrame((state) => {
       if (pointsRef.current) {
-        pointsRef.current.rotation.y = state.clock.elapsedTime * 0.01 * speed;
+        const positions = pointsRef.current.geometry.attributes.position
+          .array as Float32Array;
+
+        particleData.current.forEach((p, i) => {
+          for (let j = 0; j < 3; j++) {
+            p.position[j] += p.velocity[j] * speed;
+            if (p.position[j] > 4 || p.position[j] < -4) {
+              p.velocity[j] *= -0.9;
+              p.position[j] = Math.max(-4, Math.min(4, p.position[j]));
+            }
+            positions[i * 3 + j] = p.position[j];
+          }
+        });
+
+        pointsRef.current.geometry.attributes.position.needsUpdate = true;
+        pointsRef.current.rotation.y += 0.001 * speed;
       }
     });
 
     return (
       <points ref={pointsRef}>
-        <bufferGeometry>
+        <bufferGeometry attach="geometry">
           <bufferAttribute
             attach="attributes-position"
-            count={positions.length / 3}
-            array={positions}
+            count={count}
+            array={new Float32Array(particles.flatMap((p) => p.position))}
             itemSize={3}
           />
         </bufferGeometry>
         <pointsMaterial
-          size={0.03}
+          size={0.05}
           color="#ffffff"
           transparent
-          opacity={0.2}
+          opacity={0.25}
           sizeAttenuation
         />
       </points>
@@ -259,84 +321,52 @@ const MobileParticleField = React.memo(
   }
 );
 
-/* ========================================================================
-   SIMPLIFIED GEOMETRY FOR MOBILE
-   ======================================================================== */
-const getMobileGeometry = (type: string) => {
-  switch (type) {
-    case "sphere":
-      return <sphereGeometry args={[0.5, 12, 12]} />;
-    case "cylinder":
-      return <cylinderGeometry args={[0.35, 0.35, 0.7, 12]} />;
-    case "pyramid":
-      return <coneGeometry args={[0.45, 0.8, 4]} />;
-    case "gear":
-      return <torusGeometry args={[0.5, 0.12, 6, 12]} />;
-    case "octahedron":
-      return <octahedronGeometry args={[0.5, 0]} />;
-    case "dodecahedron":
-      return <dodecahedronGeometry args={[0.45, 0]} />;
-    default:
-      return <boxGeometry args={[0.65, 0.65, 0.65]} />;
-  }
-};
-
-/* ========================================================================
-   SIMPLIFIED HONEYCOMB CELL FOR MOBILE
-   ======================================================================== */
+/* ============================
+   MOBILE HONEYCOMB CELL (ICON ONLY)
+   ============================ */
 const MobileHoneycombCell = React.memo(
   React.forwardRef<THREE.Group, HoneycombCellProps>(
-    (
-      {
-        category,
-        position,
-        isActive,
-        onHover,
-        index,
-        animationSpeed,
-        isZoomed,
-      },
-      ref
-    ) => {
+    ({ category, position, isActive, onHover, animationSpeed }, ref) => {
       const meshRef = useRef<THREE.Mesh>(null);
+      const groupRef = useRef<THREE.Group>(null);
 
       useFrame((state) => {
-        if (meshRef.current) {
-          // Simple rotation animation
-          meshRef.current.rotation.y =
-            state.clock.elapsedTime * 0.2 * animationSpeed;
+        if (!meshRef.current || !groupRef.current) return;
 
-          // Gentle floating effect
-          if (isActive) {
-            meshRef.current.position.y =
-              position[1] + Math.sin(state.clock.elapsedTime * 2) * 0.1;
-          }
-        }
+        const time = state.clock.elapsedTime;
+
+        const floatY = Math.sin(time * 2 + position[0]) * 0.15;
+        const floatX = Math.cos(time * 1.5 + position[1]) * 0.1;
+
+        groupRef.current.position.x = position[0] + floatX;
+        groupRef.current.position.y = position[1] + floatY;
+
+        meshRef.current.rotation.y = time * 0.3 * animationSpeed;
+        meshRef.current.rotation.x = Math.sin(time * 0.5) * 0.05;
+
+        const pulse = isActive ? 1 + Math.sin(time * 3) * 0.1 : 1;
+        meshRef.current.scale.set(pulse, pulse, pulse);
       });
 
       return (
-        <group ref={ref} position={position}>
-          {/* Base hexagon */}
+        <group ref={groupRef} position={position}>
           <mesh onPointerEnter={onHover}>
-            <cylinderGeometry args={[1.1, 1.1, 0.15, 6]} />
+            <cylinderGeometry args={[1.0, 1.0, 0.12, 6]} />
             <meshStandardMaterial
               color={category.color}
               transparent
-              opacity={isActive ? 0.5 : 0.25}
+              opacity={isActive ? 0.6 : 0.25}
               emissive={category.color}
               emissiveIntensity={isActive ? 0.3 : 0.1}
-              roughness={0.5}
-              metalness={0.4}
             />
           </mesh>
 
-          {/* Floating icon/geometry */}
           <Float
-            speed={1 * animationSpeed}
-            rotationIntensity={0.5 * animationSpeed}
-            floatIntensity={0.2 * animationSpeed}
+            speed={1.5 * animationSpeed}
+            rotationIntensity={0.7}
+            floatIntensity={0.2}
           >
-            <mesh position={[0, 0.4, 0]} ref={meshRef}>
+            <mesh ref={meshRef} position={[0, 0.3, 0]}>
               {getMobileGeometry(category.model)}
               <meshPhysicalMaterial
                 color={category.color}
@@ -348,19 +378,18 @@ const MobileHoneycombCell = React.memo(
             </mesh>
           </Float>
 
-          {/* Simple HTML label */}
-          <Html position={[0, 1.1, 0]} center>
+          {/* ICON ONLY - NO TEXT */}
+          <Html position={[0, 0.8, 0]} center>
             <motion.div
               className="text-center"
               animate={{
-                scale: isActive ? 1.2 : 1,
+                scale: isActive ? 1.3 : 1,
                 y: isActive ? -2 : 0,
               }}
               transition={{ type: "spring", stiffness: 200, damping: 15 }}
             >
-              <div className="text-xl mb-1">{category.icon}</div>
-              <div className="text-xs font-bold text-white px-2 py-1 bg-black/50 rounded-full">
-                {category.title.split(" ")[0]}
+              <div className="text-xl mb-1 flex justify-center">
+                {category.icon}
               </div>
             </motion.div>
           </Html>
@@ -371,19 +400,65 @@ const MobileHoneycombCell = React.memo(
 );
 
 /* ========================================================================
-   SIMPLIFIED CONNECTING LINES FOR MOBILE
+   SIMPLIFIED MOBILE GEOMETRY
+   ======================================================================== */
+const getMobileGeometry = (type: string) => {
+  switch (type) {
+    case "sphere":
+      return <sphereGeometry args={[0.4, 12, 12]} />;
+    case "cylinder":
+      return <cylinderGeometry args={[0.3, 0.3, 0.6, 12]} />;
+    case "pyramid":
+      return <coneGeometry args={[0.4, 0.7, 4]} />;
+    case "gear":
+      return <torusGeometry args={[0.4, 0.1, 6, 12]} />;
+    case "octahedron":
+      return <octahedronGeometry args={[0.4, 0]} />;
+    case "dodecahedron":
+      return <dodecahedronGeometry args={[0.4, 0]} />;
+    default:
+      return <boxGeometry args={[0.55, 0.55, 0.55]} />;
+  }
+};
+
+/* ========================================================================
+   DESKTOP-SPECIFIC ADVANCED 3D GEOMETRIES
+   ======================================================================== */
+const getDesktopGeometry = (type: string) => {
+  switch (type) {
+    case "tetrahedron":
+      return <tetrahedronGeometry args={[0.5, 0]} />;
+    case "icosahedron":
+      return <icosahedronGeometry args={[0.45, 0]} />;
+    case "torusKnot":
+      return <torusKnotGeometry args={[0.3, 0.1, 128, 16]} />;
+    case "octahedron":
+      return <octahedronGeometry args={[0.5, 2]} />;
+    case "gear":
+      return <torusGeometry args={[0.45, 0.15, 12, 24]} />;
+    case "dodecahedron":
+      return <dodecahedronGeometry args={[0.45, 0]} />;
+    case "sphere":
+      return <sphereGeometry args={[0.5, 24, 24]} />;
+    default:
+      return <boxGeometry args={[0.65, 0.65, 0.65]} />;
+  }
+};
+
+/* ========================================================================
+   MOBILE CONNECTING LINES
    ======================================================================== */
 const MobileConnectingLines = React.memo(
   ({ activeIndex }: { activeIndex: number }) => {
     return (
       <group>
-        {HONEYCOMB_POSITIONS.map((startPos, startIndex) => {
-          return HONEYCOMB_POSITIONS.map((endPos, endIndex) => {
+        {MOBILE_POSITIONS.map((startPos, startIndex) => {
+          return MOBILE_POSITIONS.map((endPos, endIndex) => {
             if (startIndex >= endIndex) return null;
 
             const isActiveConnection =
               startIndex === activeIndex || endIndex === activeIndex;
-            if (!isActiveConnection) return null; // Only show active connections on mobile
+            if (!isActiveConnection) return null;
 
             return (
               <line key={`${startIndex}-${endIndex}`}>
@@ -420,7 +495,7 @@ const MobileConnectingLines = React.memo(
 );
 
 /* ========================================================================
-   SIMPLIFIED MOBILE STRUCTURE
+   MOBILE STRUCTURE
    ======================================================================== */
 const MobileHoneycombStructure = React.memo(
   ({
@@ -440,12 +515,10 @@ const MobileHoneycombStructure = React.memo(
     useFrame((state) => {
       const time = state.clock.elapsedTime;
 
-      // Simple auto-rotation
       if (groupRef.current && autoRotate) {
-        groupRef.current.rotation.y = time * 0.03 * animationSpeed;
+        groupRef.current.rotation.y = time * 0.04 * animationSpeed;
       }
 
-      // Simple hover effects
       cellsRef.current.forEach((cell, index) => {
         if (!cell) return;
         const isActive = index === activeIndex;
@@ -453,15 +526,13 @@ const MobileHoneycombStructure = React.memo(
         if (isActive) {
           const pulse = 1 + Math.sin(time * 3) * 0.1;
           cell.scale.set(pulse, pulse, pulse);
-        } else {
-          cell.scale.set(1, 1, 1);
         }
       });
     });
 
     return (
       <group ref={groupRef}>
-        <MobileParticleField count={20} speed={animationSpeed} />
+        <MobileParticleField count={15} speed={animationSpeed} />
         {techCategories.slice(0, 7).map((category, index) => (
           <MobileHoneycombCell
             key={index}
@@ -469,7 +540,7 @@ const MobileHoneycombStructure = React.memo(
               if (el) cellsRef.current[index] = el;
             }}
             category={category}
-            position={HONEYCOMB_POSITIONS[index]}
+            position={MOBILE_POSITIONS[index]}
             isActive={index === activeIndex}
             onHover={() => onCellHover(index)}
             index={index}
@@ -479,11 +550,10 @@ const MobileHoneycombStructure = React.memo(
         ))}
         <MobileConnectingLines activeIndex={activeIndex} />
 
-        {/* Simple sparkles */}
         <Sparkles
-          count={8}
-          scale={6}
-          size={0.5}
+          count={6}
+          scale={8}
+          size={0.4}
           speed={0.1 * animationSpeed}
           color="#ffffff"
           opacity={0.1}
@@ -494,7 +564,7 @@ const MobileHoneycombStructure = React.memo(
 );
 
 /* ========================================================================
-   DESKTOP VERSION (Existing optimized code)
+   DESKTOP VERSION WITH ADVANCED 3D SHAPES (ICON ONLY)
    ======================================================================== */
 const ParticleField = React.memo(
   ({ count = 100, speed = 1 }: { count?: number; speed?: number }) => {
@@ -602,7 +672,7 @@ const AdvancedHoneycombCell = React.memo(
             floatingRange={[-0.03, 0.03]}
           >
             <mesh position={[0, 0.5, 0]} ref={meshRef}>
-              <boxGeometry args={[0.65, 0.65, 0.65]} />
+              {getDesktopGeometry(category.model)}
               <meshPhysicalMaterial
                 color={category.color}
                 metalness={0.8}
@@ -615,12 +685,13 @@ const AdvancedHoneycombCell = React.memo(
             </mesh>
           </Float>
 
-          <Html position={[0, 1.3, 0]} center>
+          {/* ICON ONLY - NO TEXT */}
+          <Html position={[0, 1.1, 0]} center>
             <motion.div
               className="text-center cursor-pointer"
               animate={{
-                scale: isActive ? (isZoomed ? 1.5 : 1.1) : 1,
-                y: isActive ? (isZoomed ? -8 : -3) : 0,
+                scale: isActive ? (isZoomed ? 1.8 : 1.3) : 1,
+                y: isActive ? (isZoomed ? -6 : -2) : 0,
               }}
               transition={{
                 type: "spring",
@@ -629,7 +700,7 @@ const AdvancedHoneycombCell = React.memo(
               }}
             >
               <motion.div
-                className="text-2xl mb-1 filter drop-shadow-lg"
+                className="text-3xl mb-1 filter drop-shadow-lg flex justify-center"
                 animate={
                   isActive
                     ? {
@@ -646,16 +717,6 @@ const AdvancedHoneycombCell = React.memo(
                 }
               >
                 {category.icon}
-              </motion.div>
-
-              <motion.div
-                className="text-xs font-bold whitespace-nowrap text-white px-2 py-1"
-                style={{ textShadow: "0 2px 6px rgba(0,0,0,0.8)" }}
-                initial={{ opacity: 0, y: 3 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-              >
-                {category.title.split(" ")[0]}
               </motion.div>
             </motion.div>
           </Html>
@@ -695,8 +756,8 @@ const AdvancedConnectingLines = React.memo(
 
     return (
       <group>
-        {HONEYCOMB_POSITIONS.map((startPos, startIndex) => {
-          return HONEYCOMB_POSITIONS.map((endPos, endIndex) => {
+        {DESKTOP_POSITIONS.map((startPos, startIndex) => {
+          return DESKTOP_POSITIONS.map((endPos, endIndex) => {
             if (startIndex >= endIndex) return null;
             const key = `${startIndex}-${endIndex}`;
 
@@ -778,7 +839,7 @@ const DesktopHoneycombStructure = React.memo(
         } else {
           cell.position.z = 0;
           cell.position.y =
-            HONEYCOMB_POSITIONS[index][1] + Math.sin(time * 0.3 + index) * 0.05;
+            DESKTOP_POSITIONS[index][1] + Math.sin(time * 0.3 + index) * 0.05;
 
           if (isActive && !isZoomed) {
             const pulse = 1 + Math.sin(time * 2) * 0.05;
@@ -800,7 +861,7 @@ const DesktopHoneycombStructure = React.memo(
               if (el) cellsRef.current[index] = el;
             }}
             category={category}
-            position={HONEYCOMB_POSITIONS[index]}
+            position={DESKTOP_POSITIONS[index]}
             isActive={index === activeIndex}
             onHover={() => onCellHover(index)}
             index={index}
@@ -848,8 +909,8 @@ const HoneycombScene = React.memo(
     const isMobile = useIsMobile();
 
     useEffect(() => {
-      camera.position.set(0, 0, isMobile ? 12 : 10);
-      camera.fov = isMobile ? 40 : 45;
+      camera.position.set(0, 0, isMobile ? 10 : 10);
+      camera.fov = isMobile ? 45 : 45;
       camera.updateProjectionMatrix();
       scene.background = null;
     }, [camera, scene, isMobile]);
@@ -903,8 +964,8 @@ const HoneycombCanvas = React.memo(
     return (
       <Canvas
         camera={{
-          position: [0, 0, isMobile ? 12 : 10],
-          fov: isMobile ? 40 : 45,
+          position: [0, 0, isMobile ? 10 : 10],
+          fov: isMobile ? 45 : 45,
         }}
         dpr={[1, dprMax]}
         style={{
@@ -949,7 +1010,7 @@ const HoneycombCanvas = React.memo(
 );
 
 /* ========================================================================
-   SIMPLIFIED DETAIL PANEL FOR MOBILE
+   ENHANCED MOBILE DETAIL PANEL
    ======================================================================== */
 const MobileDetailPanel = React.memo(
   ({ category, isActive }: { category: TechCategory; isActive: boolean }) => {
@@ -970,22 +1031,24 @@ const MobileDetailPanel = React.memo(
         />
 
         <div className="relative z-10">
-          <div className="flex items-center gap-4 mb-4">
+          <div className="flex items-start gap-4 mb-4">
             <motion.div
-              className="text-3xl"
+              className="text-3xl flex-shrink-0 mt-1"
               animate={{ rotateY: 360 }}
               transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
             >
               {category.icon}
             </motion.div>
-            <div>
+            <div className="flex-1 min-w-0">
               <h3
-                className="text-xl font-bold text-white"
+                className="text-xl font-bold text-white mb-1 pr-8"
                 style={{ color: category.color }}
               >
                 {category.title}
               </h3>
-              <p className="text-white/70 text-sm">{category.description}</p>
+              <p className="text-white/70 text-sm leading-relaxed">
+                {category.description}
+              </p>
             </div>
           </div>
 
