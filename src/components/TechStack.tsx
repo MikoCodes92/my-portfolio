@@ -848,9 +848,8 @@ const HoneycombScene = React.memo(
     const isMobile = useIsMobile();
 
     useEffect(() => {
-      // *** MOBILE ZOOM ADJUSTMENT (moved slightly closer & increased FOV) ***
-      camera.position.set(0, 0, isMobile ? 9 : 10);
-      camera.fov = isMobile ? 48 : 45;
+      camera.position.set(0, 0, isMobile ? 12 : 10);
+      camera.fov = isMobile ? 40 : 45;
       camera.updateProjectionMatrix();
       scene.background = null;
     }, [camera, scene, isMobile]);
@@ -904,8 +903,8 @@ const HoneycombCanvas = React.memo(
     return (
       <Canvas
         camera={{
-          position: [0, 0, isMobile ? 9 : 10],
-          fov: isMobile ? 48 : 45,
+          position: [0, 0, isMobile ? 12 : 10],
+          fov: isMobile ? 40 : 45,
         }}
         dpr={[1, dprMax]}
         style={{
