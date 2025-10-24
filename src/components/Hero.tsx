@@ -361,22 +361,21 @@ export const Hero: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
           >
-            <h2 className="text-4xl md:text-5xl font-bold mb-4 relative text-white">
-              <span
-                className={`transition-all duration-500 ${
-                  !isMobile
-                    ? "animate-text-glow hover:animate-text-glow-hover"
-                    : "text-white"
-                }`}
-              >
-                Full-Stack Expert | Constant Learner
-              </span>
-              {!isMobile && (
-                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 opacity-10 blur-xl -z-10"></div>
-              )}
-            </h2>
+            <span
+              className={`block text-4xl md:text-5xl font-bold mb-4 relative text-white transition-all duration-500 ${
+                !isMobile
+                  ? "animate-text-glow hover:animate-text-glow-hover"
+                  : "text-white"
+              }`}
+            >
+              Full-Stack Expert | Constant Learner
+            </span>
+
             {!isMobile && (
-              <div className="absolute -inset-1 gradient-neon opacity-20 blur-2xl -z-10"></div>
+              <>
+                <div className="absolute -inset-1 bg-gradient-to-r from-cyan-400 via-purple-500 to-pink-500 opacity-10 blur-xl -z-10"></div>
+                <div className="absolute -inset-1 gradient-neon opacity-20 blur-2xl -z-10"></div>
+              </>
             )}
           </motion.h1>
 
