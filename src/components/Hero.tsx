@@ -337,12 +337,12 @@ export const Hero: React.FC = () => {
       )}
 
       {/* Mobile-optimized indicator */}
-      {isMobile && (
+      {/* {isMobile && (
         <div className="absolute top-4 right-4 flex items-center gap-2 text-xs text-muted-foreground bg-black/30 backdrop-blur-sm px-3 py-1 rounded-full border border-white/10">
           <Smartphone className="w-3 h-3" />
           <span>Mobile Optimized</span>
         </div>
-      )}
+      )} */}
 
       {/* Content */}
       <div className="relative z-10 max-w-7xl mx-auto px-6 text-center">

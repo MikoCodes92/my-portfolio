@@ -6,19 +6,20 @@ import { Projects } from "@/components/Projects";
 import { Contact } from "@/components/Contact";
 import { ParticleBackground } from "@/components/ParticleBackground";
 import { TechGrid } from "@/components/TechGrid";
-import { useEffect } from "react";
+import { useEffect, Suspense, lazy } from "react";
 import { useLocation } from "react-router-dom";
+
+const LazyTechStack = lazy(() => import("@/components/TechStack"));
+const LazyProjects = lazy(() => import("@/components/Projects"));
 
 const Index = () => {
   const location = useLocation();
 
   useEffect(() => {
-    // Smooth scroll for hash navigation
     const scrollToHash = () => {
       if (location.hash) {
         const el = document.querySelector(location.hash);
         if (el) {
-          // Offset for sticky nav (adjust if needed)
           const yOffset = -70;
           const y =
             el.getBoundingClientRect().top + window.pageYOffset + yOffset;
@@ -28,19 +29,14 @@ const Index = () => {
         window.scrollTo({ top: 0, behavior: "smooth" });
       }
     };
-
-    // Use requestAnimationFrame for smooth initial scroll
     requestAnimationFrame(scrollToHash);
-
-    // Retry in case mobile renders slower
-    const retries = [1, 2];
-    retries.forEach((i) => setTimeout(scrollToHash, i * 100));
+    [1, 2].forEach((i) => setTimeout(scrollToHash, i * 100));
   }, [location]);
 
   return (
     <div
-      className="relative scroll-smooth" // Enable smooth scroll on mobile/desktop
-      style={{ scrollBehavior: "smooth" }} // Fallback for older browsers
+      className="relative scroll-smooth"
+      style={{ scrollBehavior: "smooth" }}
     >
       <TechGrid />
       <ParticleBackground />
@@ -53,16 +49,27 @@ const Index = () => {
           <About />
         </div>
         <div id="tech-stack">
-          <TechStack />
+          <Suspense
+            fallback={
+              <div className="text-center py-20">Loading Tech Stack...</div>
+            }
+          >
+            <LazyTechStack />
+          </Suspense>
         </div>
         <div id="projects">
-          <Projects />
+          <Suspense
+            fallback={
+              <div className="text-center py-20">Loading Projects...</div>
+            }
+          >
+            <LazyProjects />
+          </Suspense>
         </div>
         <div id="contact">
           <Contact />
         </div>
       </main>
-
       <footer className="relative z-10 py-8 px-6 border-t border-border/50">
         <div className="max-w-7xl mx-auto text-center text-muted-foreground">
           <p>&copy; {new Date().getFullYear()} All rights reserved.</p>
