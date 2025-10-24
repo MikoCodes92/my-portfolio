@@ -151,7 +151,7 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
       >
         <mesh
           ref={meshRef}
-          scale={isMobile ? [6, 8, 1] : [6, 5, 1]} // wider desktop card
+          scale={isMobile ? [6, 8, 0.5] : [6, 5, 1]} // reduce depth on mobile
           onPointerEnter={() => setHovered(true)}
           onPointerLeave={() => setHovered(false)}
         >
@@ -171,9 +171,10 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
             center
             distanceFactor={5}
             style={{
-              width: isMobile ? "100vw" : "80vw", // slightly narrower on desktop for large screens
-              height: "90vh",
+              width: isMobile ? "90vw" : "80vw", // slightly smaller on mobile
+              height: isMobile ? "auto" : "90vh", // let height adjust automatically
               pointerEvents: "auto",
+              overflow: "visible", // important to prevent clipping
             }}
           >
             {/* Enhanced Card with ParticleBackground Color Scheme */}
