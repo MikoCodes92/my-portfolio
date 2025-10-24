@@ -21,9 +21,6 @@ import {
   Award,
 } from "lucide-react";
 
-/* -------------------------
-   Skills data (unchanged)
-   ------------------------- */
 const skills = [
   {
     name: "Algorithm Optimization",
@@ -107,9 +104,6 @@ const skills = [
   },
 ];
 
-/* -------------------------
-   Lightweight mobile check
-   ------------------------- */
 function useIsMobile() {
   if (typeof window === "undefined") return false;
   return (
@@ -118,40 +112,30 @@ function useIsMobile() {
   );
 }
 
-/* -------------------------
-   Lissajous helper (unchanged)
-   ------------------------- */
 function getLissajousPosition(t: number, idx: number, total: number) {
-  const a = 5;
-  const b = 3.5;
+  const a = 5,
+    b = 3.5;
   const delta = (idx / total) * Math.PI * 2;
-  const x = a * Math.sin(0.1 * t + delta);
-  const y = b * Math.sin(0.08 * t + delta * 2);
-  const z = a * Math.cos(0.1 * t + delta);
-  return new THREE.Vector3(x, y, z);
+  return new THREE.Vector3(
+    a * Math.sin(0.1 * t + delta),
+    b * Math.sin(0.08 * t + delta * 2),
+    a * Math.cos(0.1 * t + delta)
+  );
 }
 
-/* ======================================================================
-   Enhanced AlgorithmicSphere
-   - stronger neon aesthetic: glowing active icon, expanding ring, ripple particles
-   - perf-friendly (mobile throttling & low geometry on mobile)
-   - active tooltip (Html) near the active icon
-   ====================================================================== */
 function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
   const isMobile = useIsMobile();
   const groupRef = useRef<THREE.Group | null>(null);
-
   const meshRefs = useRef<Array<THREE.Object3D | null>>(
     useMemo(() => Array(skills.length).fill(null), [])
   );
-
   const acc = useRef(0);
   const tempScale = useMemo(() => new THREE.Vector3(), []);
 
   useFrame((state, delta) => {
     if (isMobile) {
       acc.current += delta;
-      if (acc.current < 1 / 30) return;
+      if (acc.current < 1 / 30) return; // throttle FPS
       acc.current = 0;
     }
 
@@ -165,7 +149,6 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
       const targetPos = isActive
         ? new THREE.Vector3(0, 0, 0)
         : getLissajousPosition(t, idx, skills.length);
-
       mesh.position.lerp(targetPos, 0.08);
       tempScale.set(isActive ? 5 : 3, isActive ? 5 : 3, 1);
       mesh.scale.lerp(tempScale, 0.08);
@@ -221,7 +204,7 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
                 }}
               >
                 <Icon
-                  size={idx === activeIndex ? 140 : 60} // bigger for active
+                  size={idx === activeIndex ? 140 : 60}
                   color={idx === activeIndex ? "#00ffff" : "#ffffffaa"}
                 />
                 {idx === activeIndex && (
@@ -248,9 +231,6 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
   );
 }
 
-/* -------------------------
-   TypewriterText (smoother & bounce)
-   ------------------------- */
 function TypewriterText({ text }: { text: string }) {
   const [displayed, setDisplayed] = useState("");
   useEffect(() => {
@@ -264,43 +244,33 @@ function TypewriterText({ text }: { text: string }) {
       setDisplayed((prev) => prev + text[idx]);
       idx++;
       if (idx === text.length) clearInterval(interval);
-    }, 48); // faster for snappier feel
+    }, 48);
     return () => clearInterval(interval);
   }, [text]);
   return <span>{displayed}</span>;
 }
 
-/* ======================================================================
-   About component - polished layout & neon styling
-   ====================================================================== */
 export const About: React.FC = () => {
   const [activeSkill, setActiveSkill] = useState(0);
   const isMobile = useIsMobile();
 
-  // auto-cycle active skill unchanged
   useEffect(() => {
-    const id = setInterval(() => {
-      setActiveSkill((s) => (s + 1) % skills.length);
-    }, 6000);
+    const id = setInterval(
+      () => setActiveSkill((s) => (s + 1) % skills.length),
+      6000
+    );
     return () => clearInterval(id);
   }, []);
 
-  const dprMax = isMobile
-    ? 1
-    : Math.min(
-        typeof window !== "undefined" ? window.devicePixelRatio ?? 1 : 1,
-        1.5
-      );
+  const dprMax = isMobile ? 1 : Math.min(window?.devicePixelRatio ?? 1, 1.5);
 
   return (
     <section id="about" className="relative py-16 px-6">
-      {/* background gradient + vignette */}
       <div
         style={{
           position: "absolute",
           inset: 0,
-          background:
-            "radial-gradient(1200px 600px at 10% 10%, rgba(0,240,255,0.06), transparent 8%), radial-gradient(900px 400px at 90% 80%, rgba(140,80,255,0.04), transparent 10%), linear-gradient(180deg, rgba(3,10,14,0.35), rgba(6,10,14,0.8))",
+          background: "transparent",
           pointerEvents: "none",
           zIndex: 0,
         }}
@@ -309,12 +279,10 @@ export const About: React.FC = () => {
         style={{ position: "relative", zIndex: 2 }}
         className="max-w-7xl mx-auto flex flex-col lg:flex-row items-center gap-12"
       >
-        {/* Sphere column */}
         <div
           className="w-full lg:w-1/2 h-[44rem] rounded-2xl overflow-hidden shadow-2xl"
           style={{
-            background:
-              "linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00))",
+            background: "transparent",
             border: "1px solid rgba(255,255,255,0.03)",
           }}
         >
@@ -340,9 +308,7 @@ export const About: React.FC = () => {
                 color="#06b6d4"
               />
             )}
-
             <AlgorithmicSphere activeIndex={activeSkill} />
-
             <OrbitControls
               enableZoom={false}
               enablePan={false}
@@ -352,7 +318,6 @@ export const About: React.FC = () => {
           </Canvas>
         </div>
 
-        {/* About / description column */}
         <div
           className="w-full lg:w-1/2 flex flex-col gap-6 text-white"
           style={{ zIndex: 3 }}
@@ -394,7 +359,6 @@ export const About: React.FC = () => {
             .
           </motion.p>
 
-          {/* Active skill card */}
           <motion.div
             key={skills[activeSkill].name}
             className="bg-gradient-to-r from-white/3 to-white/2 p-6 rounded-xl shadow-2xl relative overflow-hidden mt-6"
@@ -419,13 +383,11 @@ export const About: React.FC = () => {
             >
               {skills[activeSkill].name}
             </motion.h3>
-
             <p className="text-center text-white/70">
               <TypewriterText text={skills[activeSkill].description} />
             </p>
 
             <div className="mt-6 flex justify-center gap-3">
-              {/* small manual controls to preview; don't change auto-cycle logic */}
               <button
                 onClick={() =>
                   setActiveSkill((s) => (s - 1 + skills.length) % skills.length)
