@@ -445,7 +445,7 @@ export const Hero: React.FC = () => {
               <Github className="w-6 h-6" />
             </a>
             <a
-              href="www.linkedin.com/in/mikias-gebretsadik-685232301"
+              href="https://www.linkedin.com/in/mikias-gebretsadik-685232301/"
               target="_blank"
               rel="noopener noreferrer"
               className="text-muted-foreground hover:text-accent transition-colors"
