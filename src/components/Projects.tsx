@@ -73,10 +73,24 @@ const projects: Project[] = [
   },
 ];
 
-// Color scheme
+// Calm, subtle color scheme matching page aesthetic
 const COLORS = {
   primary: "#00ffff",
+  primarySoft: "rgba(0, 255, 255, 0.7)",
+  primaryMuted: "rgba(0, 255, 255, 0.3)",
+  primaryGlow: "rgba(0, 255, 255, 0.15)",
+  secondary: "#8d3cff",
+  secondarySoft: "rgba(141, 60, 255, 0.7)",
+  accent: "#06b6d4",
+  accentSoft: "rgba(6, 182, 212, 0.7)",
   darkBackground: "#100c1f",
+  darkBackgroundRGB: "16, 12, 31",
+  glassBackground: "rgba(16, 12, 31, 0.6)",
+  glassBorder: "rgba(0, 255, 255, 0.15)",
+  glassBorderHover: "rgba(0, 255, 255, 0.3)",
+  textPrimary: "#ffffff",
+  textSecondary: "rgba(255, 255, 255, 0.8)",
+  textMuted: "rgba(255, 255, 255, 0.5)",
 };
 
 // Optimized mobile detection
@@ -225,7 +239,7 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
                     variant="outline"
                     size="lg"
                     asChild
-                    className="group relative overflow-hidden bg-cyan-700/70 border border-cyan-400/20 text-cyan-100/90 hover:bg-cyan-400/30 hover:border-cyan-300 hover:text-cyan-50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
+                    className="group relative overflow-hidden bg-gradient-to-r from-cyan-600/60 to-cyan-500/60 border border-cyan-400/30 text-white hover:bg-gradient-to-r hover:from-cyan-500/70 hover:to-cyan-400/70 hover:border-cyan-300/50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
                   >
                     <a
                       href={project.github}
@@ -241,7 +255,7 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
                   <Button
                     size="lg"
                     asChild
-                    className="group relative overflow-hidden bg-cyan-700/70 border border-cyan-400/20 text-cyan-100/90 hover:bg-cyan-400/30 hover:border-cyan-300 hover:text-cyan-50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
+                    className="group relative overflow-hidden bg-gradient-to-r from-cyan-600/60 to-cyan-500/60 border border-cyan-400/30 text-white hover:bg-gradient-to-r hover:from-cyan-500/70 hover:to-cyan-400/70 hover:border-cyan-300/50 backdrop-blur-sm transition-all duration-300 hover:scale-105 font-semibold px-6 py-3 rounded-2xl"
                   >
                     <a
                       href={project.demo}
@@ -265,7 +279,7 @@ const ProjectCard3D: React.FC<{ project: Project; isMobile: boolean }> = memo(
 
 ProjectCard3D.displayName = "ProjectCard3D";
 
-// ELEGANT MOBILE NAVIGATION - Perfectly integrated with card
+// CALM, SUBTLE MOBILE NAVIGATION - Blending with page colors
 const MobileNavigation = memo(
   ({
     onPrev,
@@ -282,69 +296,69 @@ const MobileNavigation = memo(
   }) => {
     return (
       <>
-        {/* SIDE BUTTONS - Positioned at card edges */}
+        {/* SIDE BUTTONS - Subtle and elegant */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Left Button - Attached to card's left side */}
+          {/* Left Button - Calm cyan */}
           <motion.button
             onClick={onPrev}
             className="absolute left-0 top-1/2 transform -translate-y-1/2 -translate-x-1/2 pointer-events-auto z-50"
-            whileHover={{ scale: 1.15 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 300 }}
           >
             <div className="relative">
-              {/* Main button with gradient and glow */}
-              <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full p-4 shadow-2xl border-2 border-white/80">
+              {/* Main button with soft gradient */}
+              <div className="relative bg-gradient-to-r from-[rgba(0,255,255,0.2)] to-[rgba(6,182,212,0.2)] backdrop-blur-md rounded-full p-4 shadow-lg border border-white/20">
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur-lg"
-                  animate={{ opacity: [0.4, 0.8, 0.4] }}
+                  className="absolute inset-0 bg-gradient-to-r from-[rgba(0,255,255,0.1)] to-[rgba(6,182,212,0.1)] rounded-full blur-sm"
+                  animate={{ opacity: [0.2, 0.4, 0.2] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 />
                 <ArrowLeft
-                  className="w-7 h-7 text-white relative z-10"
-                  strokeWidth={2.5}
+                  className="w-7 h-7 text-white/80 relative z-10"
+                  strokeWidth={2}
                 />
               </div>
               {/* Subtle outer glow */}
-              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-xl opacity-30 -z-10" />
+              <div className="absolute inset-0 bg-[rgba(0,255,255,0.1)] rounded-full blur-md -z-10" />
             </div>
           </motion.button>
 
-          {/* Right Button - Attached to card's right side */}
+          {/* Right Button - Calm cyan */}
           <motion.button
             onClick={onNext}
             className="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-1/2 pointer-events-auto z-50"
-            whileHover={{ scale: 1.15 }}
+            whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ type: "spring", stiffness: 300, delay: 0.1 }}
           >
             <div className="relative">
-              {/* Main button with gradient and glow */}
-              <div className="relative bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full p-4 shadow-2xl border-2 border-white/80">
+              {/* Main button with soft gradient */}
+              <div className="relative bg-gradient-to-l from-[rgba(0,255,255,0.2)] to-[rgba(6,182,212,0.2)] backdrop-blur-md rounded-full p-4 shadow-lg border border-white/20">
                 <motion.div
-                  className="absolute inset-0 bg-gradient-to-l from-cyan-400 to-blue-500 rounded-full blur-lg"
-                  animate={{ opacity: [0.4, 0.8, 0.4] }}
+                  className="absolute inset-0 bg-gradient-to-l from-[rgba(0,255,255,0.1)] to-[rgba(6,182,212,0.1)] rounded-full blur-sm"
+                  animate={{ opacity: [0.2, 0.4, 0.2] }}
                   transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
                 />
                 <ArrowRight
-                  className="w-7 h-7 text-white relative z-10"
-                  strokeWidth={2.5}
+                  className="w-7 h-7 text-white/80 relative z-10"
+                  strokeWidth={2}
                 />
               </div>
               {/* Subtle outer glow */}
-              <div className="absolute inset-0 bg-cyan-400 rounded-full blur-xl opacity-30 -z-10" />
+              <div className="absolute inset-0 bg-[rgba(0,255,255,0.1)] rounded-full blur-md -z-10" />
             </div>
           </motion.button>
         </div>
 
-        {/* PAGINATION - At the bottom of card, always visible */}
+        {/* PAGINATION - Elegant and subtle */}
         <div className="absolute -bottom-16 left-0 right-0 z-50 flex justify-center">
           <motion.div
-            className="flex gap-3 bg-black/60 backdrop-blur-xl px-6 py-3 rounded-full border border-cyan-400/60 shadow-2xl"
+            className="flex gap-3 bg-[#100c1f]/60 backdrop-blur-md px-6 py-3 rounded-full border border-white/10 shadow-lg"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
@@ -354,22 +368,22 @@ const MobileNavigation = memo(
                 key={index}
                 onClick={() => onDotClick(index)}
                 className="relative"
-                whileHover={{ scale: 1.2 }}
+                whileHover={{ scale: 1.15 }}
                 whileTap={{ scale: 0.9 }}
               >
                 {index === currentIndex ? (
                   <>
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-400 to-blue-500 flex items-center justify-center text-white font-bold text-lg shadow-lg border-2 border-white">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[rgba(0,255,255,0.3)] to-[rgba(6,182,212,0.3)] backdrop-blur-sm flex items-center justify-center text-white/90 font-bold text-lg shadow-lg border border-white/30">
                       {index + 1}
                     </div>
                     <motion.div
-                      className="absolute inset-0 rounded-full bg-cyan-400 blur-md -z-10"
-                      animate={{ scale: [1, 1.3, 1], opacity: [0.3, 0.7, 0.3] }}
+                      className="absolute inset-0 rounded-full bg-[rgba(0,255,255,0.2)] blur-sm -z-10"
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.2, 0.4, 0.2] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                     />
                   </>
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-white/10 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center text-white/80 font-bold text-lg hover:bg-white/20 transition-all duration-300">
+                  <div className="w-10 h-10 rounded-full bg-white/5 backdrop-blur-sm border border-white/10 flex items-center justify-center text-white/40 font-bold text-lg hover:bg-white/10 hover:text-white/60 transition-all duration-300">
                     {index + 1}
                   </div>
                 )}
@@ -378,15 +392,15 @@ const MobileNavigation = memo(
           </motion.div>
         </div>
 
-        {/* SWIPE HINT - Subtle indicator at very bottom */}
+        {/* SWIPE HINT - Very subtle */}
         <motion.div
           className="absolute -bottom-28 left-0 right-0 z-50 flex justify-center"
-          animate={{ opacity: [0.2, 0.5, 0.2] }}
+          animate={{ opacity: [0.1, 0.2, 0.1] }}
           transition={{ duration: 2.5, repeat: Infinity }}
         >
-          <div className="flex items-center gap-2 text-white/40 text-xs">
+          <div className="flex items-center gap-2 text-white/20 text-xs">
             <ChevronLeft className="w-3 h-3" />
-            <span>swipe to navigate</span>
+            <span>swipe</span>
             <ChevronRight className="w-3 h-3" />
           </div>
         </motion.div>
@@ -397,7 +411,7 @@ const MobileNavigation = memo(
 
 MobileNavigation.displayName = "MobileNavigation";
 
-// Desktop Navigation Arrows - Matching the elegant design
+// Desktop Navigation Arrows - Subtle and elegant
 const NavigationArrows = memo(
   ({ onPrev, onNext }: { onPrev: () => void; onNext: () => void }) => {
     return (
@@ -406,18 +420,18 @@ const NavigationArrows = memo(
           <motion.button
             className="relative"
             onClick={onPrev}
-            whileHover={{ scale: 1.15, x: -3 }}
+            whileHover={{ scale: 1.1, x: -3 }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="relative bg-gradient-to-r from-cyan-500 to-blue-600 rounded-full p-5 shadow-2xl border-2 border-white/80">
+            <div className="relative bg-gradient-to-r from-[rgba(0,255,255,0.15)] to-[rgba(6,182,212,0.15)] backdrop-blur-md rounded-full p-5 shadow-lg border border-white/15">
               <motion.div
-                className="absolute inset-0 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full blur-lg"
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                className="absolute inset-0 bg-gradient-to-r from-[rgba(0,255,255,0.1)] to-[rgba(6,182,212,0.1)] rounded-full blur-sm"
+                animate={{ opacity: [0.1, 0.3, 0.1] }}
                 transition={{ duration: 2, repeat: Infinity }}
               />
               <ChevronLeft
-                className="w-6 h-6 text-white relative z-10"
-                strokeWidth={2.5}
+                className="w-6 h-6 text-white/70 relative z-10"
+                strokeWidth={2}
               />
             </div>
           </motion.button>
@@ -426,18 +440,18 @@ const NavigationArrows = memo(
           <motion.button
             className="relative"
             onClick={onNext}
-            whileHover={{ scale: 1.15, x: 3 }}
+            whileHover={{ scale: 1.1, x: 3 }}
             whileTap={{ scale: 0.95 }}
           >
-            <div className="relative bg-gradient-to-l from-cyan-500 to-blue-600 rounded-full p-5 shadow-2xl border-2 border-white/80">
+            <div className="relative bg-gradient-to-l from-[rgba(0,255,255,0.15)] to-[rgba(6,182,212,0.15)] backdrop-blur-md rounded-full p-5 shadow-lg border border-white/15">
               <motion.div
-                className="absolute inset-0 bg-gradient-to-l from-cyan-400 to-blue-500 rounded-full blur-lg"
-                animate={{ opacity: [0.3, 0.7, 0.3] }}
+                className="absolute inset-0 bg-gradient-to-l from-[rgba(0,255,255,0.1)] to-[rgba(6,182,212,0.1)] rounded-full blur-sm"
+                animate={{ opacity: [0.1, 0.3, 0.1] }}
                 transition={{ duration: 2, repeat: Infinity, delay: 0.5 }}
               />
               <ChevronRight
-                className="w-6 h-6 text-white relative z-10"
-                strokeWidth={2.5}
+                className="w-6 h-6 text-white/70 relative z-10"
+                strokeWidth={2}
               />
             </div>
           </motion.button>
@@ -550,14 +564,14 @@ export const Projects: React.FC = () => {
         viewport={{ once: true }}
         className="text-center mb-12 w-full relative z-10"
       >
-        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-cyan-50 via-cyan-100 to-cyan-50 bg-clip-text text-transparent mb-4">
+        <h1 className="text-4xl md:text-6xl font-bold bg-gradient-to-r from-white/90 via-cyan-100/90 to-white/90 bg-clip-text text-transparent mb-4">
           Featured Projects
         </h1>
-        <div className="text-xl md:text-2xl text-cyan-100/80">
-          <span className="bg-gradient-to-r from-cyan-400 to-cyan-300 bg-clip-text text-transparent font-semibold">
+        <div className="text-xl md:text-2xl text-white/60">
+          <span className="bg-gradient-to-r from-cyan-400/80 to-cyan-300/80 bg-clip-text text-transparent font-semibold">
             {currentIndex + 1}
           </span>
-          <span className="text-cyan-200/60"> / {projects.length}</span>
+          <span className="text-white/30"> / {projects.length}</span>
         </div>
       </motion.div>
 
@@ -613,7 +627,7 @@ export const Projects: React.FC = () => {
           </AnimatePresence>
         </Canvas>
 
-        {/* ELEGANT MOBILE CONTROLS */}
+        {/* CALM, SUBTLE MOBILE CONTROLS */}
         {isMobile && (
           <MobileNavigation
             onPrev={handlePrev}
