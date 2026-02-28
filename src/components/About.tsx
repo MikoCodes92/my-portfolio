@@ -1,7 +1,13 @@
 // src/components/About.tsx
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, {
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+  useCallback,
+} from "react";
 import { Canvas, useFrame } from "@react-three/fiber";
-import { OrbitControls, Html } from "@react-three/drei";
+import { Html } from "@react-three/drei";
 import { motion } from "framer-motion";
 import * as THREE from "three";
 import {
@@ -21,6 +27,7 @@ import {
   Award,
 } from "lucide-react";
 
+// --- Skills data (static) ---
 const skills = [
   {
     name: "Algorithm Optimization",
@@ -104,42 +111,75 @@ const skills = [
   },
 ];
 
+// --- Mobile detection hook ---
 function useIsMobile() {
-  if (typeof window === "undefined") return false;
-  return (
-    (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
-    window.innerWidth <= 768
-  );
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+
+    const checkMobile = () => {
+      const mobile =
+        (window.matchMedia && window.matchMedia("(pointer: coarse)").matches) ||
+        window.innerWidth <= 768;
+      setIsMobile(mobile);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return isMobile;
 }
 
-function getLissajousPosition(t: number, idx: number, total: number) {
+// --- Lissajous position calculation ---
+function getLissajousPosition(
+  t: number,
+  idx: number,
+  total: number,
+): THREE.Vector3 {
   const a = 5,
     b = 3.5,
     delta = (idx / total) * Math.PI * 2;
   return new THREE.Vector3(
     a * Math.sin(0.1 * t + delta),
     b * Math.sin(0.08 * t + delta * 2),
-    a * Math.cos(0.1 * t + delta)
+    a * Math.cos(0.1 * t + delta),
   );
 }
 
-function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
+// --- 3D sphere component with unified drag/rotation ---
+function AlgorithmicSphere({
+  activeIndex,
+  manualRotation,
+  isDragging,
+}: {
+  activeIndex: number;
+  manualRotation: [number, number];
+  isDragging: boolean;
+}) {
   const isMobile = useIsMobile();
-  const groupRef = useRef<THREE.Group | null>(null);
-  const meshRefs = useRef<Array<THREE.Object3D | null>>(
-    useMemo(() => Array(skills.length).fill(null), [])
-  );
+  const groupRef = useRef<THREE.Group>(null);
+  const meshRefs = useRef<(THREE.Object3D | null)[]>([]);
   const acc = useRef(0);
   const tempScale = useMemo(() => new THREE.Vector3(), []);
+  const autoRotY = useRef(0);
+  const autoRotX = useRef(0);
+
+  if (meshRefs.current.length !== skills.length) {
+    meshRefs.current = Array(skills.length).fill(null);
+  }
 
   useFrame((state, delta) => {
     if (isMobile) {
       acc.current += delta;
-      if (acc.current < 1 / 30) return;
+      if (acc.current < 1 / 30) return; // throttle on mobile
       acc.current = 0;
     }
     const t = state.clock.elapsedTime;
 
+    // Update positions of skill icons
     for (let idx = 0; idx < skills.length; idx++) {
       const mesh = meshRefs.current[idx];
       if (!mesh) continue;
@@ -154,10 +194,17 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
       mesh.rotation.y += isMobile ? 0.005 : 0.01;
     }
 
+    // Update group rotation: auto + manual
     if (groupRef.current) {
-      groupRef.current.rotation.y = t * (isMobile ? 0.005 : 0.01);
-      groupRef.current.rotation.x =
-        Math.sin(t * (isMobile ? 0.02 : 0.05)) * (isMobile ? 0.02 : 0.05);
+      if (!isDragging) {
+        // Auto‑rotate accumulates over time (scaled to match original speed)
+        autoRotY.current += (isMobile ? 0.005 : 0.01) * delta * 30;
+        autoRotX.current =
+          Math.sin(t * (isMobile ? 0.02 : 0.05)) * (isMobile ? 0.02 : 0.05);
+      }
+
+      groupRef.current.rotation.y = autoRotY.current + manualRotation[1];
+      groupRef.current.rotation.x = autoRotX.current + manualRotation[0];
     }
   });
 
@@ -229,57 +276,202 @@ function AlgorithmicSphere({ activeIndex }: { activeIndex: number }) {
   );
 }
 
-function TypewriterText({
-  text,
-  speed = 75,
-}: {
-  text: string;
-  speed?: number;
-}) {
-  const [displayed, setDisplayed] = useState("");
-  const indexRef = useRef(0);
+// --- Typewriter effect (memoized) ---
+const TypewriterText = React.memo(
+  ({ text, speed = 75 }: { text: string; speed?: number }) => {
+    const [displayed, setDisplayed] = useState("");
+    const indexRef = useRef(0);
+    const timeoutRef = useRef<NodeJS.Timeout>();
 
-  useEffect(() => {
-    setDisplayed(""); // reset
-    indexRef.current = 0;
+    useEffect(() => {
+      setDisplayed("");
+      indexRef.current = 0;
 
-    const interval = setInterval(() => {
-      if (indexRef.current < text.length) {
-        setDisplayed(text.slice(0, indexRef.current + 1)); // slice ensures no skipped characters
-        indexRef.current += 1;
-      } else {
-        clearInterval(interval);
-      }
-    }, speed);
+      const type = () => {
+        if (indexRef.current < text.length) {
+          setDisplayed(text.slice(0, indexRef.current + 1));
+          indexRef.current += 1;
+          timeoutRef.current = setTimeout(type, speed);
+        }
+      };
 
-    return () => clearInterval(interval);
-  }, [text, speed]);
+      timeoutRef.current = setTimeout(type, speed);
+      return () => clearTimeout(timeoutRef.current);
+    }, [text, speed]);
 
-  return <span>{displayed}</span>;
-}
+    return <span>{displayed}</span>;
+  },
+);
 
+// --- Main About component with unified pointer handling ---
 export const About: React.FC = () => {
   const [activeSkill, setActiveSkill] = useState(0);
   const isMobile = useIsMobile();
 
+  // Drag state (works for both mouse and touch)
+  const [isDragging, setIsDragging] = useState(false);
+  const [manualRotation, setManualRotation] = useState<[number, number]>([
+    0, 0,
+  ]);
+  const pointerStartRef = useRef<{ x: number; y: number } | null>(null);
+  const lastPointerRef = useRef<{ x: number; y: number } | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Determine if a pointer event should be considered a drag (movement > 5px)
+  const startDrag = useCallback((x: number, y: number) => {
+    pointerStartRef.current = { x, y };
+    lastPointerRef.current = { x, y };
+    setIsDragging(false); // will become true on move if threshold exceeded
+  }, []);
+
+  const moveDrag = useCallback(
+    (x: number, y: number) => {
+      if (!pointerStartRef.current || !lastPointerRef.current) return;
+
+      const deltaX = x - lastPointerRef.current.x;
+      const deltaY = y - lastPointerRef.current.y;
+
+      // If moved beyond threshold, mark as dragging
+      const dist = Math.hypot(
+        x - pointerStartRef.current.x,
+        y - pointerStartRef.current.y,
+      );
+      if (dist > 5) {
+        setIsDragging(true);
+      }
+
+      if (isDragging) {
+        // Convert screen delta to rotation (sensitivity factor)
+        const rotSensitivity = 0.005;
+        setManualRotation(([rx, ry]) => [
+          rx + deltaY * rotSensitivity,
+          ry + deltaX * rotSensitivity,
+        ]);
+      }
+
+      lastPointerRef.current = { x, y };
+    },
+    [isDragging],
+  );
+
+  const endDrag = useCallback(() => {
+    pointerStartRef.current = null;
+    lastPointerRef.current = null;
+    setIsDragging(false);
+  }, []);
+
+  // --- Event handlers (unified for mouse and touch) ---
+
+  const handlePointerDown = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      // Only handle primary button (left click/touch)
+      if (e.button !== 0) return;
+
+      // Store the target to check later if needed
+      const target = e.target;
+
+      // Start tracking potential drag
+      startDrag(e.clientX, e.clientY);
+
+      // Don't prevent default on pointer down - this allows the click to eventually fire
+      // We'll handle it in pointer up
+    },
+    [startDrag],
+  );
+
+  const handlePointerMove = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!pointerStartRef.current) return; // not dragging
+
+      // Only prevent default if we're actually dragging
+      if (isDragging) {
+        e.preventDefault();
+      }
+
+      moveDrag(e.clientX, e.clientY);
+    },
+    [moveDrag, isDragging],
+  );
+
+  const handlePointerUp = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (!pointerStartRef.current) return;
+
+      const wasDragging = isDragging;
+      const startPoint = { ...pointerStartRef.current };
+      endDrag();
+
+      // If it was a quick tap/click (not dragging), scroll to about
+      if (!wasDragging) {
+        // Calculate total movement
+        const totalMovement = Math.hypot(
+          e.clientX - startPoint.x,
+          e.clientY - startPoint.y,
+        );
+
+        // Only scroll if movement was minimal (less than 10px)
+        if (totalMovement < 10) {
+          const el = document.getElementById("about");
+          if (el) {
+            const yOffset = -70;
+            const y =
+              el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+            window.scrollTo({ top: y, behavior: "smooth" });
+          }
+        }
+      }
+    },
+    [isDragging, endDrag],
+  );
+
+  const handlePointerCancel = useCallback(() => {
+    endDrag();
+  }, [endDrag]);
+
+  const handlePointerLeave = useCallback(
+    (e: React.PointerEvent<HTMLDivElement>) => {
+      if (pointerStartRef.current) {
+        endDrag();
+      }
+    },
+    [endDrag],
+  );
+
+  // Also add a click handler as a fallback
+  const handleClick = useCallback(
+    (e: React.MouseEvent<HTMLDivElement>) => {
+      // Only handle if we're not dragging and it's a direct click on the container/canvas
+      if (!isDragging) {
+        const el = document.getElementById("about");
+        if (el) {
+          const yOffset = -70;
+          const y =
+            el.getBoundingClientRect().top + window.pageYOffset + yOffset;
+          window.scrollTo({ top: y, behavior: "smooth" });
+        }
+      }
+    },
+    [isDragging],
+  );
+
+  // Skill cycling
   useEffect(() => {
     const id = setInterval(
       () => setActiveSkill((s) => (s + 1) % skills.length),
-      6000
+      6000,
     );
     return () => clearInterval(id);
   }, []);
 
-  const dprMax = isMobile ? 1 : Math.min(window?.devicePixelRatio ?? 1, 1.5);
+  const dprMax = isMobile ? 1 : Math.min(window.devicePixelRatio || 1, 1.5);
 
   return (
     <section
       id="about"
       className="relative flex flex-col items-center justify-center py-16 px-6 min-h-screen text-center"
     >
-      {/* Centered Content Wrapper */}
       <div className="max-w-5xl w-full flex flex-col lg:flex-row items-center gap-16">
-        {/* Text Section */}
+        {/* Text Section (unchanged) */}
         <div className="w-full lg:w-1/2 flex flex-col gap-6 text-white">
           <motion.h2
             className="text-4xl md:text-5xl font-bold"
@@ -354,12 +546,25 @@ export const About: React.FC = () => {
           </motion.div>
         </div>
 
-        {/* 3D Sphere Section */}
-        <div className="w-full lg:w-1/2 h-[44rem] rounded-2xl overflow-hidden shadow-2xl">
+        {/* 3D Sphere Section with unified pointer handlers */}
+        <div
+          ref={containerRef}
+          className="w-full lg:w-1/2 h-[44rem] rounded-2xl overflow-hidden shadow-2xl cursor-pointer"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+          onPointerLeave={handlePointerLeave}
+          onClick={handleClick}
+        >
           <Canvas
             camera={{ position: [0, 0, 16], fov: 50 }}
             dpr={[1, dprMax]}
-            gl={{ antialias: false, powerPreference: "low-power", alpha: true }}
+            gl={{
+              antialias: !isMobile,
+              powerPreference: "low-power",
+              alpha: true,
+            }}
             style={{ width: "100%", height: "100%", background: "transparent" }}
           >
             <ambientLight intensity={isMobile ? 0.45 : 0.65} />
@@ -373,12 +578,10 @@ export const About: React.FC = () => {
                 color="#06b6d4"
               />
             )}
-            <AlgorithmicSphere activeIndex={activeSkill} />
-            <OrbitControls
-              enableZoom={false}
-              enablePan={false}
-              autoRotate={!isMobile}
-              autoRotateSpeed={isMobile ? 0.01 : 0.02}
+            <AlgorithmicSphere
+              activeIndex={activeSkill}
+              manualRotation={manualRotation}
+              isDragging={isDragging}
             />
           </Canvas>
         </div>
